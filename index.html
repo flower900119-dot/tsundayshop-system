@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>門市管理系統</title>
+    <style>
+        body { font-family: sans-serif; padding: 20px; background: #f4f4f4; }
+        .tab-content { display: none; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        .active { display: block; }
+        nav { margin-bottom: 20px; }
+        button { padding: 10px 20px; cursor: pointer; border: none; background: #007bff; color: white; border-radius: 5px; margin-right: 5px; }
+        button:hover { background: #0056b3; }
+        input, select { margin: 10px 0; display: block; width: 100%; padding: 8px; box-sizing: border-box; }
+    </style>
+</head>
+<body>
+
+    <nav>
+        <button onclick="showTab('lending')">布本借用</button>
+        <button onclick="showTab('traffic')">來客回報</button>
+        <button onclick="showTab('inventory')">耗材庫存</button>
+    </nav>
+
+    <div id="lending" class="tab-content active">
+        <h2>布本借用系統</h2>
+        <input type="text" id="bookName" placeholder="布本編號/名稱">
+        <select id="bookStatus">
+            <option value="借出">借出</option>
+            <option value="歸還">歸還</option>
+        </select>
+        <button onclick="sendData('Lending', 'bookName', 'bookStatus')">提交變動</button>
+        <div id="lendingList">讀取中...</div>
+    </div>
+
+    <div id="traffic" class="tab-content">
+        <h2>門市來客回報</h2>
+        <input type="number" id="visitorCount" placeholder="來客人數">
+        <input type="text" id="visitorNote" placeholder="諮詢備註">
+        <button onclick="sendData('Traffic', 'visitorCount', 'visitorNote')">回報人數</button>
+    </div>
+
+    <div id="inventory" class="tab-content">
+        <h2>耗材庫存系統</h2>
+        <input type="text" id="itemName" placeholder="耗材名稱">
+        <input type="number" id="itemQty" placeholder="目前數量">
+        <button onclick="sendData('Inventory', 'itemName', 'itemQty')">更新庫存水平</button>
+    </div>
+
+    <script>
+        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyjU9lj-K5S-74QYpi64OjW1K-SrExs1ZUVsv9VrQUMQojpOvGWwPVG7rplzyZTdRzWrA/exec"; // 這裡換成你的 URL
+
+        function showTab(id) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+            document.getElementById(id).classList.add('active');
+        }
+
+        // 送出資料到 Google Sheets
+        function sendData(sheetName, field1Id, field2Id) {
+            const val1 = document.getElementById(field1Id).value;
+            const val2 = document.getElementById(field2Id).value;
+            const now = new Date().toLocaleString();
+
+            fetch(SCRIPT_URL, {
+                method: "POST",
+                body: JSON.stringify({
+                    sheet: sheetName,
+                    data: [now, val1, val2]
+                })
+            }).then(() => {
+                alert("同步成功！");
+                location.reload(); // 提交後重新整理，確保看到最新狀態
+            });
+        }
+
+        // 自動定時重新整理（每 60 秒）
+        setInterval(() => {
+            console.log("正在同步最新資料...");
+            // 這裡可以呼叫 fetch(SCRIPT_URL + "?sheet=Lending") 來局部更新 UI
+        }, 60000);
+    </script>
+</body>
+</html>
